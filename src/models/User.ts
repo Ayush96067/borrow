@@ -6,9 +6,10 @@ export interface User extends Document {
   username: string;
   email: string;
   password: string;
-  verifyCode: string;
-  verifyCodeExpiry: Date;
 }
+
+// verifyCode: string;
+// verifyCodeExpiry: Date;
 
 const UserSchema: Schema<User> = new Schema({
   username: {
@@ -27,16 +28,19 @@ const UserSchema: Schema<User> = new Schema({
     type: String,
     required: [true, "Password is required"],
   },
-  verifyCode: {
-    type: String,
-    required: [true, "verify Code is required"],
-  },
-  verifyCodeExpiry: {
-    type: Date,
-    required: [true, "Veriy code expiry date is required"],
-  },
 });
 
-const UserModel = mongoose.model<User>("User", UserSchema);
+const UserModel =
+  (mongoose.models.User as mongoose.Model<User>) ||
+  mongoose.model<User>("User", UserSchema);
 
 export default UserModel;
+
+// verifyCode: {
+//   type: String,
+//   required: [true, "verify Code is required"],
+// },
+// verifyCodeExpiry: {
+//   type: Date,
+//   required: [true, "Veriy code expiry date is required"],
+// },

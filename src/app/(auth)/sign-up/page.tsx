@@ -38,9 +38,7 @@ function signUpForm() {
         <h1 className="text-2xl font-mono font-extrabold md:text-5xl ">
           Join our Platform
         </h1>
-        <p className="font-serif text-xs md:text-base">
-          And be a valuable member and part of us
-        </p>
+        <p className="font-serif text-xs md:text-base">Be a part of us</p>
         <h1 className="text-purple-400   text-4xl mt-10"> Register</h1>
       </div>
 

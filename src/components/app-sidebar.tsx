@@ -7,6 +7,7 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -15,6 +16,7 @@ import {
 
 import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
 import Link from "next/link";
+import { ModeToggle } from "./ModeToggle";
 
 const items = [
   {
@@ -63,6 +65,9 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              <SidebarMenuItem>
+                <ModeToggle />
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
