@@ -1,8 +1,7 @@
-import MainPage from "@/components/MainPage";
 import React from "react";
 
 function page() {
-  return <MainPage />;
+  return <div>Contact us</div>;
 }
 
 export default page;

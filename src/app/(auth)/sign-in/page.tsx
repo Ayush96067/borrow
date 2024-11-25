@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -12,21 +12,68 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useState } from "react";
-import { signInSchema } from "@/schemas/signInSchema";
 
-function signInForm() {
-  const form = useForm<z.infer<typeof signInSchema>>({
-    resolver: zodResolver(signInSchema),
+import { Input } from "@/components/ui/input";
+import { signInSchema } from "@/schemas/signInSchema";
+import { signIn } from "next-auth/react";
+
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import Link from "next/link";
+
+type Inputs = {
+  identifier: string;
+  password: string;
+};
+
+const page = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { toast } = useToast();
+  const router = useRouter();
+
+  // const form = useForm<z.infer<typeof signInSchema>>({
+  const form = useForm<Inputs>({
+    // resolver: zodResolver(signInSchema),
     defaultValues: {
       identifier: "",
       password: "",
     },
   });
 
-  async function onSubmit(values: z.infer<typeof signInSchema>) {
-    console.log(values);
+  // async function onSubmit(values: z.infer<typeof signInSchema>) {
+  async function onSubmit(values: Inputs) {
+    setIsSubmitting(true);
+    const result = await signIn("credentials", {
+      redirect: false,
+      identifier: values.identifier,
+      password: values.password,
+    });
+
+    if (result?.error) {
+      if (result.error === "CredentialsSignin") {
+        toast({
+          title: "Login Failed",
+          description: "Incorrect username or password",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: result.error,
+          variant: "destructive",
+        });
+      }
+    }
+    if (result?.url) {
+      toast({
+        title: "Login Successfull",
+        description: "Your being redirected",
+        variant: "default",
+      });
+      router.replace("/dashboard");
+    }
   }
 
   return (
@@ -36,7 +83,7 @@ function signInForm() {
           Verification
         </h1>
         <p className="font-serif text-xs md:text-base">
-          Verify to start your journey with us{" "}
+          Verify to start your journey with us
         </p>
         <h1 className="text-purple-400   text-4xl mt-10">LOGIN</h1>
       </div>
@@ -51,9 +98,9 @@ function signInForm() {
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Username/Email</FormLabel>
+                <FormLabel>Email/Username</FormLabel>
                 <FormControl>
-                  <Input placeholder="username/email" {...field} />
+                  <Input {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -67,18 +114,27 @@ function signInForm() {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input placeholder="*********" {...field} />
+                  <Input type="password" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-
-          <Button type="submit">Log-in</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            Log-in
+          </Button>
         </form>
       </Form>
+      <p className="mt-2">
+        If not registered?{" "}
+        <Link className="text-blue-600 hover:text-blue-400" href={"/sign-up"}>
+          Register
+        </Link>
+      </p>
     </div>
   );
-}
+};
 
-export default signInForm;
+export default page;
+
+// //////////////////////////////////////////////////////

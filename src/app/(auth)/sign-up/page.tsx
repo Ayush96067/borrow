@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { signUpSchema } from "@/schemas/signUpSchema";
 import { Button } from "@/components/ui/button";
+import { useDebounceCallback } from "usehooks-ts";
+import axios, { AxiosError } from "axios";
 import {
   Form,
   FormControl,
@@ -14,10 +16,21 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { toast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+import { ApiResponse } from "@/types/ApiResponse";
+import { Loader2 } from "lucide-react";
 
 function signUpForm() {
   const [username, setUsername] = useState("");
+  const [usernameMessage, setUsernameMessage] = useState("");
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const debounced = useDebounceCallback(setUsername, 500);
+
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
@@ -28,9 +41,51 @@ function signUpForm() {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof signUpSchema>) {
-    console.log(values);
-  }
+  useEffect(() => {
+    const checkUsernameUnique = async () => {
+      if (username) {
+        setIsCheckingUsername(true);
+        setUsernameMessage("");
+        try {
+          const res = await axios.get(
+            `api/check-username-unique?username=${username}`
+          );
+          setUsernameMessage(res.data.message);
+        } catch (error) {
+          const axiosError = error as AxiosError<ApiResponse>;
+          setUsernameMessage(
+            axiosError.response?.data.message ?? "Error checking username"
+          );
+        } finally {
+          setIsCheckingUsername(false);
+        }
+      }
+    };
+    checkUsernameUnique();
+  }, [username]);
+
+  const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
+    setIsSubmitting(true);
+    try {
+      const res = await axios.post("/api/sign-up", data);
+
+      toast({
+        title: "Success",
+        description: res.data.message,
+      });
+      router.replace("/sign-in");
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiResponse>;
+      let errorMessage = axiosError.response?.data.message;
+      toast({
+        title: "Signup failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex flex-col justify-center items-center w-full min-h-screen">
@@ -54,8 +109,27 @@ function signUpForm() {
               <FormItem>
                 <FormLabel>Username</FormLabel>
                 <FormControl>
-                  <Input placeholder="username" {...field} />
+                  <Input
+                    placeholder="username"
+                    {...field}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      debounced(e.target.value);
+                    }}
+                  />
                 </FormControl>
+                {isCheckingUsername && <Loader2 className="animate-spin" />}
+                {username !== "" && (
+                  <p
+                    className={`text-sm ${
+                      usernameMessage == "Username is unique"
+                        ? "text-green-500"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {usernameMessage}
+                  </p>
+                )}
                 <FormMessage />
               </FormItem>
             )}
@@ -89,9 +163,17 @@ function signUpForm() {
             )}
           />
 
-          <Button type="submit">Sign-up</Button>
+          <Button type="submit" disabled={isSubmitting}>
+            Sign-up
+          </Button>
         </form>
       </Form>
+      <p className="mt-2">
+        If already registered?{" "}
+        <Link className="text-blue-600 hover:text-blue-400" href={"/sign-in"}>
+          Verify
+        </Link>
+      </p>
     </div>
   );
 }

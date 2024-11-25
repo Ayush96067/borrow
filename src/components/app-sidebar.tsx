@@ -14,9 +14,18 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
+import {
+  Contact,
+  Home,
+  LampDesk,
+  List,
+  Settings,
+  ShoppingBag,
+  UserCheck2,
+} from "lucide-react";
 import Link from "next/link";
 import { ModeToggle } from "./ModeToggle";
+import { useSession } from "next-auth/react";
 
 const items = [
   {
@@ -25,29 +34,31 @@ const items = [
     icon: Home,
   },
   {
-    title: "Register",
-    url: "/sign-up",
-    icon: Inbox,
-  },
-  {
-    title: "Login",
-    url: "/sign-in",
-    icon: Calendar,
-  },
-  {
     title: "Products",
     url: "/products",
-    icon: Search,
+    icon: ShoppingBag,
   },
   {
     title: "Contact us",
     url: "/contact-us",
+    icon: Contact,
+  },
+  {
+    title: "Services us",
+    url: "/services",
     icon: Settings,
+  },
+  {
+    title: "About us",
+    url: "/about-us",
+    icon: LampDesk,
   },
 ];
 
 export function AppSidebar() {
   const { toggleSidebar } = useSidebar();
+  const { data } = useSession();
+
   return (
     <Sidebar variant="floating" side="left" collapsible="offcanvas">
       <SidebarContent>
@@ -74,7 +85,16 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem>Username</SidebarMenuItem>
+          <SidebarMenuItem className="ml-2">
+            {data?.user.username ? (
+              <span className="flex gap-2">
+                <UserCheck2 />
+                {data?.user.username}
+              </span>
+            ) : (
+              "Not logged"
+            )}
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>

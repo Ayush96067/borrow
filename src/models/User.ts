@@ -1,5 +1,4 @@
 "use server";
-
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface User extends Document {

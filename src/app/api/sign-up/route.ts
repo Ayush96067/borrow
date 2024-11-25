@@ -1,3 +1,5 @@
+"use server";
+
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/models/User";
 import bcrypt from "bcryptjs";
@@ -27,7 +29,7 @@ export async function POST(request: Request) {
           message: "User already exist with this email",
         },
         {
-          status: 201,
+          status: 400,
         }
       );
     } else {
